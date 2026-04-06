@@ -37,9 +37,10 @@ Smart Aid is an AI-powered web platform for poverty assistance and resource acce
 2. **Scheme Browser** — Filterable list of government schemes with search
 3. **Assistance Centers** — NGOs, hospitals, food distribution centers
 4. **Employment** — Job listings with filters for daily wage, skilled, government, NGO positions
-5. **Document Management** — Upload and track verification status of identity documents
-6. **Admin Dashboard** — Stats, scheme management, user list, recent activity feed, bar chart
-7. **Multilingual** — English/Hindi toggle throughout the UI
+5. **Document Management** — Upload and track verification status of identity documents (status: pending/approved/rejected)
+6. **Admin Dashboard** — Stats, scheme management, document approval workflow, user list, recent activity feed, bar chart
+7. **Admin Login** — Separate admin portal login page (`/admin-login`) with distinct dark styling, shield icon, and different branding from user sign-in
+8. **Multilingual** — English/Hindi toggle throughout the UI
 
 ## Database Tables
 
@@ -72,9 +73,11 @@ Smart Aid is an AI-powered web platform for poverty assistance and resource acce
 
 Clerk auth is integrated throughout the app:
 - `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `VITE_CLERK_PUBLISHABLE_KEY` — auto-provisioned
-- Sign in at `/sign-in`, sign up at `/sign-up` (Google OAuth + email)
+- User sign in at `/sign-in`, sign up at `/sign-up` (Google OAuth + email)
+- Admin sign in at `/admin-login` (separate portal with dark styling, redirects to `/admin` after sign-in)
 - Documents page is auth-protected (redirects to `/sign-in` if signed out)
-- API: documents endpoints are protected with `requireAuth` middleware (`getAuth` from `@clerk/express`)
+- Admin dashboard is auth-protected (redirects to `/admin-login` if signed out)
+- API: documents and admin endpoints are protected with `requireAuth` middleware (`getAuth` from `@clerk/express`)
 - Documents are stored per-user via `clerkUserId` column
 - Layout shows "Sign In" button for guests, user avatar dropdown for signed-in users
 

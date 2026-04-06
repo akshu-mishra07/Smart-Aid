@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { LanguageToggle } from "./language-toggle";
 import { useLanguage } from "@/lib/language-context";
-import { HeartHandshake, Menu, LogIn, LogOut, User } from "lucide-react";
+import { HeartHandshake, Menu, LogIn, LogOut, User, Shield } from "lucide-react";
 import { useUser, useClerk, Show } from "@clerk/react";
 import {
   Sheet,
@@ -111,8 +111,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           <div className="flex flex-1 items-center justify-end space-x-3">
             <LanguageToggle />
-            <Link href="/admin" className="hidden sm:inline-flex" data-testid="link-admin">
-              <Button variant="ghost" size="sm" className="text-muted-foreground">Admin</Button>
+            <Link href="/admin-login" className="hidden sm:inline-flex" data-testid="link-admin">
+              <Button variant="ghost" size="sm" className="text-muted-foreground">
+                <Shield className="h-4 w-4 mr-1" />
+                Admin
+              </Button>
             </Link>
 
             <Show when="signed-in">
@@ -154,7 +157,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     </Link>
                   ))}
                   <Link
-                    href="/admin"
+                    href="/admin-login"
                     className="text-lg font-medium text-muted-foreground transition-colors hover:text-primary"
                   >
                     Admin

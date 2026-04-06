@@ -250,6 +250,53 @@ export interface DocumentUpload {
   objectPath?: string | null;
 }
 
+export type AdminDocumentDocumentType =
+  (typeof AdminDocumentDocumentType)[keyof typeof AdminDocumentDocumentType];
+
+export const AdminDocumentDocumentType = {
+  aadhar: "aadhar",
+  pan: "pan",
+  income_certificate: "income_certificate",
+  caste_certificate: "caste_certificate",
+  domicile: "domicile",
+  other: "other",
+} as const;
+
+export type AdminDocumentStatus =
+  (typeof AdminDocumentStatus)[keyof typeof AdminDocumentStatus];
+
+export const AdminDocumentStatus = {
+  pending: "pending",
+  verified: "verified",
+  rejected: "rejected",
+} as const;
+
+export interface AdminDocument {
+  id: number;
+  fileName: string;
+  documentType: AdminDocumentDocumentType;
+  objectPath?: string | null;
+  status: AdminDocumentStatus;
+  uploadedAt: string;
+  notes?: string | null;
+  userName: string;
+  userEmail: string;
+  clerkUserId?: string | null;
+}
+
+export type UpdateDocumentStatusBodyStatus =
+  (typeof UpdateDocumentStatusBodyStatus)[keyof typeof UpdateDocumentStatusBodyStatus];
+
+export const UpdateDocumentStatusBodyStatus = {
+  verified: "verified",
+  rejected: "rejected",
+} as const;
+
+export interface UpdateDocumentStatusBody {
+  status: UpdateDocumentStatusBodyStatus;
+  notes?: string | null;
+}
+
 export interface RequestUploadUrlBody {
   name: string;
   size: number;

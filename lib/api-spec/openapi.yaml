@@ -325,6 +325,46 @@ paths:
         "204":
           description: Deleted
 
+  /admin/documents:
+    get:
+      operationId: listAllDocuments
+      tags: [admin]
+      summary: List all user documents (admin only)
+      responses:
+        "200":
+          description: List of all documents with user info
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminDocument"
+
+  /admin/documents/{id}/status:
+    patch:
+      operationId: updateDocumentStatus
+      tags: [admin]
+      summary: Approve or reject a document (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDocumentStatusBody"
+      responses:
+        "200":
+          description: Document status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDocument"
+
   /storage/uploads/request-url:
     post:
       operationId: requestUploadUrl
@@ -696,6 +736,56 @@ components:
       required:
         - fileName
         - documentType
+
+    AdminDocument:
+      type: object
+      properties:
+        id:
+          type: integer
+        fileName:
+          type: string
+        documentType:
+          type: string
+          enum: [aadhar, pan, income_certificate, caste_certificate, domicile, other]
+        objectPath:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, verified, rejected]
+        uploadedAt:
+          type: string
+          format: date-time
+        notes:
+          type: string
+          nullable: true
+        userName:
+          type: string
+        userEmail:
+          type: string
+        clerkUserId:
+          type: string
+          nullable: true
+      required:
+        - id
+        - fileName
+        - documentType
+        - status
+        - uploadedAt
+        - userName
+        - userEmail
+
+    UpdateDocumentStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [verified, rejected]
+        notes:
+          type: string
+          nullable: true
+      required:
+        - status
 
     RequestUploadUrlBody:
       type: object

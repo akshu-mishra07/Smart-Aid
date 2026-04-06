@@ -8,6 +8,9 @@
 
 export * from "./activityItem";
 export * from "./activityItemType";
+export * from "./adminDocument";
+export * from "./adminDocumentDocumentType";
+export * from "./adminDocumentStatus";
 export * from "./assistanceCenter";
 export * from "./assistanceCenterType";
 export * from "./categoryCount";
@@ -41,4 +44,6 @@ export * from "./schemeCreateCategory";
 export * from "./schemeCreateSchemeType";
 export * from "./schemeSchemeType";
 export * from "./statsSummary";
+export * from "./updateDocumentStatusBody";
+export * from "./updateDocumentStatusBodyStatus";
 export * from "./user";

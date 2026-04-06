@@ -503,6 +503,62 @@ export const DeleteSchemeParams = zod.object({
 });
 
 /**
+ * @summary List all user documents (admin only)
+ */
+export const ListAllDocumentsResponseItem = zod.object({
+  id: zod.number(),
+  fileName: zod.string(),
+  documentType: zod.enum([
+    "aadhar",
+    "pan",
+    "income_certificate",
+    "caste_certificate",
+    "domicile",
+    "other",
+  ]),
+  objectPath: zod.string().nullish(),
+  status: zod.enum(["pending", "verified", "rejected"]),
+  uploadedAt: zod.coerce.date(),
+  notes: zod.string().nullish(),
+  userName: zod.string(),
+  userEmail: zod.string(),
+  clerkUserId: zod.string().nullish(),
+});
+export const ListAllDocumentsResponse = zod.array(ListAllDocumentsResponseItem);
+
+/**
+ * @summary Approve or reject a document (admin only)
+ */
+export const UpdateDocumentStatusParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateDocumentStatusBody = zod.object({
+  status: zod.enum(["verified", "rejected"]),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateDocumentStatusResponse = zod.object({
+  id: zod.number(),
+  fileName: zod.string(),
+  documentType: zod.enum([
+    "aadhar",
+    "pan",
+    "income_certificate",
+    "caste_certificate",
+    "domicile",
+    "other",
+  ]),
+  objectPath: zod.string().nullish(),
+  status: zod.enum(["pending", "verified", "rejected"]),
+  uploadedAt: zod.coerce.date(),
+  notes: zod.string().nullish(),
+  userName: zod.string(),
+  userEmail: zod.string(),
+  clerkUserId: zod.string().nullish(),
+});
+
+/**
  * @summary Request a presigned URL for file upload
  */
 export const RequestUploadUrlBody = zod.object({

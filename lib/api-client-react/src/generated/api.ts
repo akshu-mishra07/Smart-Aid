@@ -18,6 +18,7 @@ import type {
 
 import type {
   ActivityItem,
+  AdminDocument,
   AssistanceCenter,
   CategoryCount,
   Document,
@@ -34,6 +35,7 @@ import type {
   Scheme,
   SchemeCreate,
   StatsSummary,
+  UpdateDocumentStatusBody,
   User,
 } from "./api.schemas";
 
@@ -1308,6 +1310,169 @@ export const useDeleteScheme = <
   TContext
 > => {
   return useMutation(getDeleteSchemeMutationOptions(options));
+};
+
+/**
+ * @summary List all user documents (admin only)
+ */
+export const getListAllDocumentsUrl = () => {
+  return `/api/admin/documents`;
+};
+
+export const listAllDocuments = async (
+  options?: RequestInit,
+): Promise<AdminDocument[]> => {
+  return customFetch<AdminDocument[]>(getListAllDocumentsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAllDocumentsQueryKey = () => {
+  return [`/api/admin/documents`] as const;
+};
+
+export const getListAllDocumentsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAllDocuments>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAllDocuments>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListAllDocumentsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAllDocuments>>
+  > = ({ signal }) => listAllDocuments({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAllDocuments>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAllDocumentsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAllDocuments>>
+>;
+export type ListAllDocumentsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all user documents (admin only)
+ */
+
+export function useListAllDocuments<
+  TData = Awaited<ReturnType<typeof listAllDocuments>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAllDocuments>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAllDocumentsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Approve or reject a document (admin only)
+ */
+export const getUpdateDocumentStatusUrl = (id: number) => {
+  return `/api/admin/documents/${id}/status`;
+};
+
+export const updateDocumentStatus = async (
+  id: number,
+  updateDocumentStatusBody: UpdateDocumentStatusBody,
+  options?: RequestInit,
+): Promise<AdminDocument> => {
+  return customFetch<AdminDocument>(getUpdateDocumentStatusUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateDocumentStatusBody),
+  });
+};
+
+export const getUpdateDocumentStatusMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDocumentStatus>>,
+    TError,
+    { id: number; data: BodyType<UpdateDocumentStatusBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateDocumentStatus>>,
+  TError,
+  { id: number; data: BodyType<UpdateDocumentStatusBody> },
+  TContext
+> => {
+  const mutationKey = ["updateDocumentStatus"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateDocumentStatus>>,
+    { id: number; data: BodyType<UpdateDocumentStatusBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateDocumentStatus(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateDocumentStatusMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateDocumentStatus>>
+>;
+export type UpdateDocumentStatusMutationBody =
+  BodyType<UpdateDocumentStatusBody>;
+export type UpdateDocumentStatusMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Approve or reject a document (admin only)
+ */
+export const useUpdateDocumentStatus = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDocumentStatus>>,
+    TError,
+    { id: number; data: BodyType<UpdateDocumentStatusBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateDocumentStatus>>,
+  TError,
+  { id: number; data: BodyType<UpdateDocumentStatusBody> },
+  TContext
+> => {
+  return useMutation(getUpdateDocumentStatusMutationOptions(options));
 };
 
 /**

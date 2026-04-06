@@ -17,6 +17,7 @@ import Jobs from "@/pages/jobs";
 import JobDetail from "@/pages/job-detail";
 import Documents from "@/pages/documents";
 import Admin from "@/pages/admin";
+import AdminLogin from "@/pages/admin-login";
 import About from "@/pages/about";
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -110,6 +111,7 @@ function Router() {
         <Route path="/jobs" component={Jobs} />
         <Route path="/jobs/:id" component={JobDetail} />
         <Route path="/documents" component={DocumentsRoute} />
+        <Route path="/admin-login/*?" component={AdminLogin} />
         <Route path="/admin" component={Admin} />
         <Route path="/about" component={About} />
         <Route component={NotFound} />

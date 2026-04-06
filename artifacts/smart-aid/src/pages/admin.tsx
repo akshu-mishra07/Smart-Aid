@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLanguage } from "@/lib/language-context";
-import { Link } from "wouter";
+import { Link, Redirect } from "wouter";
+import { useUser, Show } from "@clerk/react";
 import {
   useGetStatsSummary, getGetStatsSummaryQueryKey,
   useGetSchemesByCategory, getGetSchemesByCategoryQueryKey,
@@ -9,6 +10,8 @@ import {
   useListSchemes, getListSchemesQueryKey,
   useDeleteScheme,
   useCreateScheme,
+  useListAllDocuments, getListAllDocumentsQueryKey,
+  useUpdateDocumentStatus,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,14 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
-import { BookOpen, Briefcase, MapPin, Users, Plus, Trash2, Eye, Clock } from "lucide-react";
-
-const activityIcons: Record<string, string> = {
-  scheme_added: "BookOpen",
-  job_posted: "Briefcase",
-  center_added: "MapPin",
-  document_uploaded: "FileText",
-};
+import { BookOpen, Briefcase, MapPin, Users, Plus, Trash2, Eye, Clock, FileText, CheckCircle, XCircle, Paperclip } from "lucide-react";
 
 const emptySchemeForm = {
   name: "",
@@ -50,13 +46,33 @@ const emptySchemeForm = {
   documents: [] as string[],
 };
 
-export default function Admin() {
+const docTypeLabels: Record<string, { en: string; hi: string }> = {
+  aadhar: { en: "Aadhar Card", hi: "आधार कार्ड" },
+  pan: { en: "PAN Card", hi: "पैन कार्ड" },
+  income_certificate: { en: "Income Certificate", hi: "आय प्रमाण पत्र" },
+  caste_certificate: { en: "Caste Certificate", hi: "जाति प्रमाण पत्र" },
+  domicile: { en: "Domicile Certificate", hi: "निवास प्रमाण पत्र" },
+  other: { en: "Other Document", hi: "अन्य दस्तावेज़" },
+};
+
+const statusConfig = {
+  pending: { color: "bg-yellow-100 text-yellow-700", label: "Pending", labelHi: "लंबित" },
+  verified: { color: "bg-green-100 text-green-700", label: "Approved", labelHi: "स्वीकृत" },
+  rejected: { color: "bg-red-100 text-red-700", label: "Rejected", labelHi: "अस्वीकृत" },
+};
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+function AdminContent() {
   const { t, language } = useLanguage();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [form, setForm] = useState(emptySchemeForm);
   const [formError, setFormError] = useState<string | null>(null);
+  const [rejectDialogDoc, setRejectDialogDoc] = useState<number | null>(null);
+  const [rejectNotes, setRejectNotes] = useState("");
+  const [docFilter, setDocFilter] = useState<"all" | "pending" | "verified" | "rejected">("all");
 
   const { data: stats, isLoading: statsLoading } = useGetStatsSummary({
     query: { queryKey: getGetStatsSummaryQueryKey() },
@@ -78,8 +94,13 @@ export default function Admin() {
     query: { queryKey: getListSchemesQueryKey({}) },
   });
 
+  const { data: adminDocs, isLoading: docsLoading } = useListAllDocuments({
+    query: { queryKey: getListAllDocumentsQueryKey() },
+  });
+
   const deleteMutation = useDeleteScheme();
   const createMutation = useCreateScheme();
+  const statusMutation = useUpdateDocumentStatus();
 
   const handleDelete = (id: number) => {
     if (!window.confirm(t("Are you sure you want to delete this scheme?", "क्या आप इस योजना को हटाना चाहते हैं?"))) return;
@@ -129,6 +150,24 @@ export default function Admin() {
     });
   };
 
+  const handleApprove = (docId: number) => {
+    statusMutation.mutate({ id: docId, data: { status: "verified" as const } }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListAllDocumentsQueryKey() });
+      },
+    });
+  };
+
+  const handleReject = (docId: number) => {
+    statusMutation.mutate({ id: docId, data: { status: "rejected" as const, notes: rejectNotes.trim() || null } }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListAllDocumentsQueryKey() });
+        setRejectDialogDoc(null);
+        setRejectNotes("");
+      },
+    });
+  };
+
   const chartData = schemesByCategory?.map(item => ({
     name: item.category,
     count: item.count,
@@ -141,6 +180,13 @@ export default function Admin() {
     { label: t("Registered Users", "पंजीकृत उपयोगकर्ता"), value: stats?.totalUsers, icon: Users, color: "text-purple-600" },
   ];
 
+  const filteredDocs = adminDocs?.filter((doc) => {
+    if (docFilter === "all") return true;
+    return doc.status === docFilter;
+  }) ?? [];
+
+  const pendingCount = adminDocs?.filter((d) => d.status === "pending").length ?? 0;
+
   return (
     <div className="container mx-auto px-4 py-12 max-w-6xl">
       <div className="mb-8">
@@ -148,13 +194,21 @@ export default function Admin() {
           {t("Admin Dashboard", "एडमिन डैशबोर्ड")}
         </h1>
         <p className="text-muted-foreground">
-          {t("Manage schemes, monitor platform activity, and view user statistics", "योजनाएं प्रबंधित करें, प्लेटफॉर्म गतिविधि मॉनिटर करें और उपयोगकर्ता आंकड़े देखें")}
+          {t("Manage schemes, review documents, and monitor platform activity", "योजनाएं प्रबंधित करें, दस्तावेज़ समीक्षा करें और प्लेटफॉर्म गतिविधि मॉनिटर करें")}
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-8" data-testid="admin-tabs">
           <TabsTrigger value="overview" data-testid="tab-overview">{t("Overview", "अवलोकन")}</TabsTrigger>
+          <TabsTrigger value="documents" data-testid="tab-documents" className="relative">
+            {t("Documents", "दस्तावेज़")}
+            {pendingCount > 0 && (
+              <span className="ml-1.5 inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-yellow-500 text-white rounded-full">
+                {pendingCount}
+              </span>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="schemes" data-testid="tab-schemes">{t("Schemes", "योजनाएं")}</TabsTrigger>
           <TabsTrigger value="users" data-testid="tab-users">{t("Users", "उपयोगकर्ता")}</TabsTrigger>
         </TabsList>
@@ -231,6 +285,160 @@ export default function Admin() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="documents">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+            <h2 className="text-xl font-semibold">{t("Document Review", "दस्तावेज़ समीक्षा")}</h2>
+            <div className="flex gap-2">
+              {(["all", "pending", "verified", "rejected"] as const).map((f) => (
+                <Button
+                  key={f}
+                  size="sm"
+                  variant={docFilter === f ? "default" : "outline"}
+                  onClick={() => setDocFilter(f)}
+                  data-testid={`filter-${f}`}
+                >
+                  {f === "all" ? t("All", "सभी") :
+                   f === "pending" ? t("Pending", "लंबित") :
+                   f === "verified" ? t("Approved", "स्वीकृत") :
+                   t("Rejected", "अस्वीकृत")}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {docsLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full" />)}
+            </div>
+          ) : filteredDocs.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground font-medium">
+                  {docFilter === "all"
+                    ? t("No documents uploaded yet", "अभी तक कोई दस्तावेज़ नहीं")
+                    : t("No documents with this status", "इस स्थिति वाले कोई दस्तावेज़ नहीं")}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {filteredDocs.map((doc) => {
+                const status = statusConfig[doc.status as keyof typeof statusConfig] || statusConfig.pending;
+                return (
+                  <Card key={doc.id} data-testid={`admin-doc-${doc.id}`}>
+                    <CardContent className="py-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <div className="mt-0.5 p-2 bg-muted rounded-lg shrink-0">
+                            <FileText className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground truncate">{doc.fileName}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {language === "hi"
+                                ? docTypeLabels[doc.documentType]?.hi || doc.documentType
+                                : docTypeLabels[doc.documentType]?.en || doc.documentType}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {t("Uploaded by: ", "द्वारा अपलोड: ")}
+                              <span className="font-medium">{doc.userName}</span>
+                              {doc.userEmail && <span className="ml-1">({doc.userEmail})</span>}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(doc.uploadedAt).toLocaleDateString("en-IN", {
+                                year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+                              })}
+                            </p>
+                            {doc.notes && (
+                              <p className="text-xs mt-1 italic text-muted-foreground">
+                                {t("Notes: ", "टिप्पणी: ")}{doc.notes}
+                              </p>
+                            )}
+                            {doc.objectPath && (
+                              <a
+                                href={`${BASE}/api/storage${doc.objectPath}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary mt-1 flex items-center gap-1 hover:underline"
+                              >
+                                <Paperclip className="h-3 w-3" />
+                                {t("View file", "फ़ाइल देखें")}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge className={status.color}>
+                            {language === "hi" ? status.labelHi : status.label}
+                          </Badge>
+                          {doc.status === "pending" && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700"
+                                onClick={() => handleApprove(doc.id)}
+                                disabled={statusMutation.isPending}
+                                data-testid={`btn-approve-${doc.id}`}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                {t("Approve", "स्वीकृत")}
+                              </Button>
+                              <Dialog open={rejectDialogDoc === doc.id} onOpenChange={(open) => { if (!open) { setRejectDialogDoc(null); setRejectNotes(""); } }}>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                                    onClick={() => setRejectDialogDoc(doc.id)}
+                                    data-testid={`btn-reject-${doc.id}`}
+                                  >
+                                    <XCircle className="h-4 w-4 mr-1" />
+                                    {t("Reject", "अस्वीकृत")}
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>{t("Reject Document", "दस्तावेज़ अस्वीकृत करें")}</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4 mt-4">
+                                    <div className="space-y-2">
+                                      <Label>{t("Reason for rejection (optional)", "अस्वीकृति का कारण (वैकल्पिक)")}</Label>
+                                      <Textarea
+                                        placeholder={t("e.g. Document is unclear, please re-upload", "जैसे दस्तावेज़ स्पष्ट नहीं है, कृपया पुनः अपलोड करें")}
+                                        value={rejectNotes}
+                                        onChange={(e) => setRejectNotes(e.target.value)}
+                                        rows={3}
+                                        data-testid="input-reject-notes"
+                                      />
+                                    </div>
+                                    <Button
+                                      className="w-full"
+                                      variant="destructive"
+                                      onClick={() => handleReject(doc.id)}
+                                      disabled={statusMutation.isPending}
+                                      data-testid="btn-confirm-reject"
+                                    >
+                                      {statusMutation.isPending
+                                        ? t("Updating...", "अपडेट हो रहा है...")
+                                        : t("Confirm Rejection", "अस्वीकृति की पुष्टि करें")}
+                                    </Button>
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="schemes">
@@ -496,5 +704,20 @@ export default function Admin() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function Admin() {
+  const { t } = useLanguage();
+
+  return (
+    <>
+      <Show when="signed-in">
+        <AdminContent />
+      </Show>
+      <Show when="signed-out">
+        <Redirect to="/admin-login" />
+      </Show>
+    </>
   );
 }

@@ -1,0 +1,127 @@
+📄 PROJECT SYNOPSIS
+Title of the Project
+
+Smart Aid: An AI-Powered Web Platform for Poverty Assistance and Resource Accessibility
+
+1. Introduction
+
+Poverty remains one of the most significant challenges in developing countries like India. Although the government provides numerous welfare schemes, subsidies, and employment opportunities, many eligible individuals fail to benefit due to lack of awareness, digital illiteracy, and fragmented information sources.
+
+The proposed system, Smart Aid, is a web-based platform designed to bridge this gap by providing a centralized system where users can easily access information about government schemes, nearby assistance centers, and job opportunities. The platform leverages basic Artificial Intelligence techniques to recommend suitable schemes based on user input.
+
+2. Objective of the Project
+
+The main objectives of the project are:
+
+To develop a user-friendly web application for economically weaker sections
+To provide personalized recommendations for government welfare schemes
+To help users locate nearby assistance services such as NGOs and hospitals
+To provide employment opportunities for daily wage workers
+To reduce the information gap and improve accessibility
+To promote digital inclusion
+3. Problem Statement
+
+Despite various government initiatives, many people face difficulties in accessing benefits due to:
+
+Lack of awareness about schemes
+Complex eligibility criteria
+No centralized system for information
+Limited digital knowledge
+Time-consuming manual processes
+
+As a result, many eligible individuals remain deprived of benefits.
+
+4. Proposed Solution
+
+The proposed solution is a centralized web-based platform developed using ASP.NET and SQL Server.
+
+The system allows users to:
+
+Enter personal and economic details
+Get recommendations for suitable schemes
+Find nearby NGOs, hospitals, and food centers
+Search for job opportunities
+Upload documents for verification
+
+The system uses rule-based logic to analyze user data and provide accurate recommendations.
+
+5. Key Features
+1. AI-Based Eligibility Checker
+Suggests schemes based on income, age, and category
+Uses rule-based logic implemented in backend
+2. Nearby Assistance Locator
+Uses map integration to show:
+NGOs
+Hospitals
+Food distribution centers
+3. Employment Assistance Module
+Displays local job opportunities
+Helps users find daily wage work
+4. Document Upload & Verification
+Users upload identity proof
+Basic validation is performed
+5. Multilingual Support
+Supports English and Hindi
+Improves usability
+6. Admin Dashboard
+Admin can:
+Manage schemes
+View users
+Monitor system
+6. Technology Stack
+💻 Frontend
+ASP.NET Web Forms
+HTML5, CSS3, JavaScript
+Bootstrap
+⚙️ Backend
+C#
+ASP.NET
+🗄️ Database
+Microsoft SQL Server
+📍 APIs
+Google Maps API
+🧠 AI Logic
+Rule-Based System (C#)
+Optional integration with OpenAI
+🛠️ Tools
+Visual Studio
+SQL Server Management Studio
+🌐 Deployment
+Microsoft Azure / IIS Server
+7. System Architecture (Brief)
+
+The system follows a 3-tier architecture:
+
+Presentation Layer – User interface (ASP.NET pages)
+Business Logic Layer – Processing and decision making (C# logic)
+Data Layer – Database (SQL Server)
+8. Expected Outcomes
+Increased awareness about government schemes
+Easy access to essential services
+Faster decision-making for users
+Improved employment opportunities
+Better utilization of resources
+9. Scope of the Project
+
+Future enhancements include:
+
+Mobile application development
+Integration with government databases
+Advanced AI/ML recommendations
+Fraud detection system
+Expansion to health and education sectors
+10. Advantages of the System
+Centralized platform
+User-friendly interface
+Time-saving
+Cost-effective
+Scalable system
+11. Conclusion
+
+The Smart Aid platform provides a practical and impactful solution to reduce poverty-related challenges by connecting people with the resources available to them. By leveraging web technologies and intelligent logic, the system improves accessibility, awareness, and efficiency.
+
+This project contributes towards digital empowerment and aligns with Sustainable Development Goal 1: No Poverty.
+
+🔥 (Extra Line for Viva / Judges)
+
+👉 “Smart Aid is not just a website, but a digital bridge between needy people and underutilized resources.”

@@ -3,13 +3,28 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Smart Aid API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: schemes
+    description: Government welfare schemes
+  - name: eligibility
+    description: Eligibility checking
+  - name: assistance
+    description: Nearby assistance centers
+  - name: jobs
+    description: Employment opportunities
+  - name: documents
+    description: Document upload and verification
+  - name: admin
+    description: Admin operations
+  - name: stats
+    description: Dashboard statistics
+
 paths:
   /healthz:
     get:
@@ -24,6 +39,320 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /schemes:
+    get:
+      operationId: listSchemes
+      tags: [schemes]
+      summary: List all welfare schemes
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [general, sc, st, obc, minority, women, disability, all]
+        - name: schemeType
+          in: query
+          schema:
+            type: string
+            enum: [scholarship, housing, employment, health, food, pension, all]
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of schemes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Scheme"
+
+  /schemes/{id}:
+    get:
+      operationId: getScheme
+      tags: [schemes]
+      summary: Get scheme details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Scheme details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scheme"
+        "404":
+          description: Not found
+
+  /eligibility/check:
+    post:
+      operationId: checkEligibility
+      tags: [eligibility]
+      summary: Check scheme eligibility based on user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EligibilityRequest"
+      responses:
+        "200":
+          description: Eligible schemes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EligibilityResult"
+
+  /assistance-centers:
+    get:
+      operationId: listAssistanceCenters
+      tags: [assistance]
+      summary: List nearby assistance centers
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [ngo, hospital, food_center, all]
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of assistance centers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssistanceCenter"
+
+  /jobs:
+    get:
+      operationId: listJobs
+      tags: [jobs]
+      summary: List job opportunities
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [daily_wage, skilled, unskilled, government, ngo, all]
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+
+  /jobs/{id}:
+    get:
+      operationId: getJob
+      tags: [jobs]
+      summary: Get job details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Job details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+
+  /documents:
+    get:
+      operationId: listDocuments
+      tags: [documents]
+      summary: List uploaded documents
+      responses:
+        "200":
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+    post:
+      operationId: uploadDocument
+      tags: [documents]
+      summary: Upload a document
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentUpload"
+      responses:
+        "201":
+          description: Document uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+
+  /documents/{id}:
+    get:
+      operationId: getDocument
+      tags: [documents]
+      summary: Get document details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Document details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+
+  /admin/users:
+    get:
+      operationId: listUsers
+      tags: [admin]
+      summary: List all users (admin only)
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /admin/schemes:
+    post:
+      operationId: createScheme
+      tags: [admin]
+      summary: Create a new scheme (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SchemeCreate"
+      responses:
+        "201":
+          description: Scheme created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scheme"
+
+  /admin/schemes/{id}:
+    put:
+      operationId: updateScheme
+      tags: [admin]
+      summary: Update a scheme (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SchemeCreate"
+      responses:
+        "200":
+          description: Scheme updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scheme"
+    delete:
+      operationId: deleteScheme
+      tags: [admin]
+      summary: Delete a scheme (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /stats/summary:
+    get:
+      operationId: getStatsSummary
+      tags: [stats]
+      summary: Get dashboard summary statistics
+      responses:
+        "200":
+          description: Stats summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsSummary"
+
+  /stats/schemes-by-category:
+    get:
+      operationId: getSchemesByCategory
+      tags: [stats]
+      summary: Get scheme count grouped by category
+      responses:
+        "200":
+          description: Scheme counts by category
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryCount"
+
+  /stats/recent-activity:
+    get:
+      operationId: getRecentActivity
+      tags: [stats]
+      summary: Get recent platform activity feed
+      responses:
+        "200":
+          description: Recent activity items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +363,379 @@ components:
       required:
         - status
 
+    Scheme:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameHindi:
+          type: string
+        description:
+          type: string
+        descriptionHindi:
+          type: string
+        schemeType:
+          type: string
+          enum: [scholarship, housing, employment, health, food, pension, other]
+        category:
+          type: string
+          enum: [general, sc, st, obc, minority, women, disability, all]
+        minAge:
+          type: integer
+          nullable: true
+        maxAge:
+          type: integer
+          nullable: true
+        maxIncome:
+          type: number
+          nullable: true
+        ministry:
+          type: string
+        benefitAmount:
+          type: string
+          nullable: true
+        applicationUrl:
+          type: string
+          nullable: true
+        documents:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - nameHindi
+        - description
+        - descriptionHindi
+        - schemeType
+        - category
+        - ministry
+        - documents
+        - isActive
+        - createdAt
+
+    SchemeCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        nameHindi:
+          type: string
+        description:
+          type: string
+        descriptionHindi:
+          type: string
+        schemeType:
+          type: string
+          enum: [scholarship, housing, employment, health, food, pension, other]
+        category:
+          type: string
+          enum: [general, sc, st, obc, minority, women, disability, all]
+        minAge:
+          type: integer
+          nullable: true
+        maxAge:
+          type: integer
+          nullable: true
+        maxIncome:
+          type: number
+          nullable: true
+        ministry:
+          type: string
+        benefitAmount:
+          type: string
+          nullable: true
+        applicationUrl:
+          type: string
+          nullable: true
+        documents:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+      required:
+        - name
+        - nameHindi
+        - description
+        - descriptionHindi
+        - schemeType
+        - category
+        - ministry
+        - documents
+        - isActive
+
+    EligibilityRequest:
+      type: object
+      properties:
+        age:
+          type: integer
+        gender:
+          type: string
+          enum: [male, female, other]
+        category:
+          type: string
+          enum: [general, sc, st, obc, minority]
+        annualIncome:
+          type: number
+        state:
+          type: string
+        hasDisability:
+          type: boolean
+        isStudent:
+          type: boolean
+        occupation:
+          type: string
+          enum: [unemployed, daily_wage, skilled_worker, farmer, student, other]
+      required:
+        - age
+        - gender
+        - category
+        - annualIncome
+        - state
+        - hasDisability
+        - isStudent
+        - occupation
+
+    EligibilityResult:
+      type: object
+      properties:
+        schemes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Scheme"
+        totalMatched:
+          type: integer
+        userProfile:
+          $ref: "#/components/schemas/EligibilityRequest"
+      required:
+        - schemes
+        - totalMatched
+        - userProfile
+
+    AssistanceCenter:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+          enum: [ngo, hospital, food_center]
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        services:
+          type: array
+          items:
+            type: string
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+        operatingHours:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+      required:
+        - id
+        - name
+        - type
+        - address
+        - city
+        - state
+        - services
+        - isActive
+
+    Job:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        organization:
+          type: string
+        category:
+          type: string
+          enum: [daily_wage, skilled, unskilled, government, ngo]
+        description:
+          type: string
+        location:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        salaryRange:
+          type: string
+          nullable: true
+        contactPerson:
+          type: string
+          nullable: true
+        contactPhone:
+          type: string
+          nullable: true
+        requirements:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+        postedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - organization
+        - category
+        - description
+        - location
+        - city
+        - state
+        - requirements
+        - isActive
+        - postedAt
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: integer
+        fileName:
+          type: string
+        documentType:
+          type: string
+          enum: [aadhar, pan, income_certificate, caste_certificate, domicile, other]
+        status:
+          type: string
+          enum: [pending, verified, rejected]
+        uploadedAt:
+          type: string
+          format: date-time
+        notes:
+          type: string
+          nullable: true
+      required:
+        - id
+        - fileName
+        - documentType
+        - status
+        - uploadedAt
+
+    DocumentUpload:
+      type: object
+      properties:
+        fileName:
+          type: string
+        documentType:
+          type: string
+          enum: [aadhar, pan, income_certificate, caste_certificate, domicile, other]
+        fileContent:
+          type: string
+          description: Base64 encoded file content
+      required:
+        - fileName
+        - documentType
+        - fileContent
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        state:
+          type: string
+        documentsCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - state
+        - documentsCount
+        - createdAt
+
+    StatsSummary:
+      type: object
+      properties:
+        totalSchemes:
+          type: integer
+        totalJobs:
+          type: integer
+        totalAssistanceCenters:
+          type: integer
+        totalUsers:
+          type: integer
+        schemesThisMonth:
+          type: integer
+        jobsThisMonth:
+          type: integer
+      required:
+        - totalSchemes
+        - totalJobs
+        - totalAssistanceCenters
+        - totalUsers
+        - schemesThisMonth
+        - jobsThisMonth
+
+    CategoryCount:
+      type: object
+      properties:
+        category:
+          type: string
+        count:
+          type: integer
+      required:
+        - category
+        - count
+
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [scheme_added, job_posted, center_added, document_uploaded]
+        title:
+          type: string
+        description:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - title
+        - description
+        - timestamp

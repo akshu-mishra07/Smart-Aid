@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Smart Aid"
+version = "1.0.0"
+id = "artifacts/smart-aid"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25423
+
+[services.development]
+run = "pnpm --filter @workspace/smart-aid run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/smart-aid", "run", "build" ]
+publicDir = "artifacts/smart-aid/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25423"
+BASE_PATH = "/"

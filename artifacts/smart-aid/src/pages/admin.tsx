@@ -99,7 +99,7 @@ export default function Admin() {
       return;
     }
 
-    createMutation.mutate({
+    createMutation.mutate({ data: {
       name: form.name.trim(),
       nameHindi: form.nameHindi.trim(),
       description: form.description.trim(),
@@ -114,7 +114,7 @@ export default function Admin() {
       maxIncome: form.maxIncome ? parseInt(form.maxIncome) : null,
       isActive: form.isActive,
       documents: form.documents,
-    }, {
+    }}, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListSchemesQueryKey({}) });
         queryClient.invalidateQueries({ queryKey: getGetStatsSummaryQueryKey() });

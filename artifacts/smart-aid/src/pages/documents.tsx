@@ -120,11 +120,11 @@ export default function Documents() {
     }
 
     mutation.mutate(
-      {
+      { data: {
         fileName: selectedFile?.name ?? `document_${Date.now()}`,
         documentType: documentType as "aadhar" | "pan" | "income_certificate" | "caste_certificate" | "domicile" | "other",
         objectPath: objectPath ?? undefined,
-      },
+      }},
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListDocumentsQueryKey() });

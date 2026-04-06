@@ -41,7 +41,7 @@ export default function Eligibility() {
 
   const handleSubmit = () => {
     if (!form.age || !form.gender || !form.category || !form.annualIncome || !form.state || !form.occupation) return;
-    mutation.mutate({
+    mutation.mutate({ data: {
       age: parseInt(form.age),
       gender: form.gender as "male" | "female" | "other",
       category: form.category as "general" | "sc" | "st" | "obc" | "minority",
@@ -50,7 +50,7 @@ export default function Eligibility() {
       hasDisability: form.hasDisability,
       isStudent: form.isStudent,
       occupation: form.occupation as "unemployed" | "daily_wage" | "skilled_worker" | "farmer" | "student" | "other",
-    }, {
+    }}, {
       onSuccess: () => setSubmitted(true),
     });
   };

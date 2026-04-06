@@ -7,6 +7,7 @@ import jobsRouter from "./jobs";
 import documentsRouter from "./documents";
 import adminRouter from "./admin";
 import statsRouter from "./stats";
+import storageRouter from "./storage";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(jobsRouter);
 router.use(documentsRouter);
 router.use(adminRouter);
 router.use(statsRouter);
+router.use(storageRouter);
 
 export default router;

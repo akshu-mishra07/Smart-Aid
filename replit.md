@@ -53,6 +53,25 @@ Smart Aid is an AI-powered web platform for poverty assistance and resource acce
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 - `pnpm --filter @workspace/smart-aid run dev` — run frontend locally
 
+## Authentication
+
+Clerk auth is integrated throughout the app:
+- `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `VITE_CLERK_PUBLISHABLE_KEY` — auto-provisioned
+- Sign in at `/sign-in`, sign up at `/sign-up` (Google OAuth + email)
+- Documents page is auth-protected (redirects to `/sign-in` if signed out)
+- API: documents endpoints are protected with `requireAuth` middleware (`getAuth` from `@clerk/express`)
+- Documents are stored per-user via `clerkUserId` column
+- Layout shows "Sign In" button for guests, user avatar dropdown for signed-in users
+
+## Object Storage
+
+Replit App Storage (GCS-backed) for real document file uploads:
+- `DEFAULT_OBJECT_STORAGE_BUCKET_ID`, `PUBLIC_OBJECT_SEARCH_PATHS`, `PRIVATE_OBJECT_DIR` — auto-provisioned
+- `POST /api/storage/uploads/request-url` — returns presigned PUT URL for direct-to-GCS upload
+- `GET /api/storage/objects/*` — serves uploaded files
+- Documents page does two-step upload: get presigned URL → PUT file to GCS → save metadata to DB
+- `objectPath` stored in `documents` table for file retrieval
+
 ## Design
 
 - Color palette: Warm saffron/amber primary (#B8681A) on cream background

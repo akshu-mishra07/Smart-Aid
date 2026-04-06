@@ -225,6 +225,7 @@ export interface Document {
   id: number;
   fileName: string;
   documentType: DocumentDocumentType;
+  objectPath?: string | null;
   status: DocumentStatus;
   uploadedAt: string;
   notes?: string | null;
@@ -245,8 +246,26 @@ export const DocumentUploadDocumentType = {
 export interface DocumentUpload {
   fileName: string;
   documentType: DocumentUploadDocumentType;
-  /** Base64 encoded file content */
-  fileContent: string;
+  /** Path returned from the storage upload endpoint */
+  objectPath?: string | null;
+}
+
+export interface RequestUploadUrlBody {
+  name: string;
+  size: number;
+  contentType: string;
+}
+
+export type RequestUploadUrlResponseMetadata = {
+  name: string;
+  size: number;
+  contentType: string;
+};
+
+export interface RequestUploadUrlResponse {
+  uploadURL: string;
+  objectPath: string;
+  metadata: RequestUploadUrlResponseMetadata;
 }
 
 export interface User {

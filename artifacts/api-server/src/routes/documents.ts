@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db, documentsTable } from "@workspace/db";
 import {
   ListDocumentsResponse,
@@ -7,38 +7,51 @@ import {
   GetDocumentParams,
   GetDocumentResponse,
 } from "@workspace/api-zod";
+import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
-router.get("/documents", async (_req, res): Promise<void> => {
-  const docs = await db.select().from(documentsTable).orderBy(documentsTable.uploadedAt);
+router.get("/documents", requireAuth, async (req, res): Promise<void> => {
+  const userId = (req as any).clerkUserId;
+  const docs = await db
+    .select()
+    .from(documentsTable)
+    .where(eq(documentsTable.clerkUserId, userId))
+    .orderBy(documentsTable.uploadedAt);
   res.json(ListDocumentsResponse.parse(docs));
 });
 
-router.post("/documents", async (req, res): Promise<void> => {
+router.post("/documents", requireAuth, async (req, res): Promise<void> => {
   const parsed = UploadDocumentBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
 
+  const userId = (req as any).clerkUserId;
   const [doc] = await db.insert(documentsTable).values({
+    clerkUserId: userId,
     fileName: parsed.data.fileName,
     documentType: parsed.data.documentType,
+    objectPath: parsed.data.objectPath ?? null,
     status: "pending",
   }).returning();
 
   res.status(201).json(GetDocumentResponse.parse(doc));
 });
 
-router.get("/documents/:id", async (req, res): Promise<void> => {
+router.get("/documents/:id", requireAuth, async (req, res): Promise<void> => {
   const params = GetDocumentParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
     return;
   }
 
-  const [doc] = await db.select().from(documentsTable).where(eq(documentsTable.id, params.data.id));
+  const userId = (req as any).clerkUserId;
+  const [doc] = await db
+    .select()
+    .from(documentsTable)
+    .where(and(eq(documentsTable.id, params.data.id), eq(documentsTable.clerkUserId, userId)));
   if (!doc) {
     res.status(404).json({ error: "Document not found" });
     return;

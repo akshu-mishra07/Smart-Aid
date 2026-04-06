@@ -311,6 +311,7 @@ export const ListDocumentsResponseItem = zod.object({
     "domicile",
     "other",
   ]),
+  objectPath: zod.string().nullish(),
   status: zod.enum(["pending", "verified", "rejected"]),
   uploadedAt: zod.coerce.date(),
   notes: zod.string().nullish(),
@@ -330,7 +331,10 @@ export const UploadDocumentBody = zod.object({
     "domicile",
     "other",
   ]),
-  fileContent: zod.string().describe("Base64 encoded file content"),
+  objectPath: zod
+    .string()
+    .nullish()
+    .describe("Path returned from the storage upload endpoint"),
 });
 
 /**
@@ -351,6 +355,7 @@ export const GetDocumentResponse = zod.object({
     "domicile",
     "other",
   ]),
+  objectPath: zod.string().nullish(),
   status: zod.enum(["pending", "verified", "rejected"]),
   uploadedAt: zod.coerce.date(),
   notes: zod.string().nullish(),
@@ -488,6 +493,25 @@ export const UpdateSchemeResponse = zod.object({
  */
 export const DeleteSchemeParams = zod.object({
   id: zod.coerce.number(),
+});
+
+/**
+ * @summary Request a presigned URL for file upload
+ */
+export const RequestUploadUrlBody = zod.object({
+  name: zod.string(),
+  size: zod.number(),
+  contentType: zod.string(),
+});
+
+export const RequestUploadUrlResponse = zod.object({
+  uploadURL: zod.string(),
+  objectPath: zod.string(),
+  metadata: zod.object({
+    name: zod.string(),
+    size: zod.number(),
+    contentType: zod.string(),
+  }),
 });
 
 /**

@@ -10,6 +10,6 @@ import type { DocumentUploadDocumentType } from "./documentUploadDocumentType";
 export interface DocumentUpload {
   fileName: string;
   documentType: DocumentUploadDocumentType;
-  /** Base64 encoded file content */
-  fileContent: string;
+  /** Path returned from the storage upload endpoint */
+  objectPath?: string | null;
 }

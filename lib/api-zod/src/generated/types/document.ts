@@ -12,6 +12,7 @@ export interface Document {
   id: number;
   fileName: string;
   documentType: DocumentDocumentType;
+  objectPath?: string | null;
   status: DocumentStatus;
   uploadedAt: Date;
   notes?: string | null;

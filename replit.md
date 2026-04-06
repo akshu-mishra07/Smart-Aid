@@ -25,6 +25,12 @@ Smart Aid is an AI-powered web platform for poverty assistance and resource acce
 - **smart-aid** (`artifacts/smart-aid/`): Main React + Vite frontend at `/`
 - **api-server** (`artifacts/api-server/`): Express API server at `/api`
 
+## Key Bug Fixes Applied
+
+- **Orval mutation wrapper**: All `.mutate()` calls now use `{ data: {...} }` wrapper required by Orval-generated hooks. Fixed in `eligibility.tsx`, `admin.tsx`, `documents.tsx`.
+- **Admin users**: Now fetches real Clerk-registered users via Clerk Backend API. Falls back to seeded DB users if no Clerk users.
+- **Homepage enriched**: Features real-time sections for Featured Schemes, Latest Jobs, and Nearby Centers loaded directly from API.
+
 ## Features
 
 1. **Eligibility Checker** — 3-step wizard that matches users with welfare schemes based on age, income, category, disability status, etc.

@@ -12,6 +12,7 @@ import {
   UpdateSchemeResponse,
   DeleteSchemeParams,
 } from "@workspace/api-zod";
+import { requireAdmin } from "../middlewares/requireAdmin";
 
 const router: IRouter = Router();
 
@@ -58,7 +59,7 @@ router.get("/schemes/:id", async (req, res): Promise<void> => {
   res.json(GetSchemeResponse.parse(scheme));
 });
 
-router.post("/admin/schemes", async (req, res): Promise<void> => {
+router.post("/admin/schemes", requireAdmin, async (req, res): Promise<void> => {
   const parsed = CreateSchemeBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -69,7 +70,7 @@ router.post("/admin/schemes", async (req, res): Promise<void> => {
   res.status(201).json(GetSchemeResponse.parse(scheme));
 });
 
-router.put("/admin/schemes/:id", async (req, res): Promise<void> => {
+router.put("/admin/schemes/:id", requireAdmin, async (req, res): Promise<void> => {
   const params = UpdateSchemeParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -96,7 +97,7 @@ router.put("/admin/schemes/:id", async (req, res): Promise<void> => {
   res.json(UpdateSchemeResponse.parse(scheme));
 });
 
-router.delete("/admin/schemes/:id", async (req, res): Promise<void> => {
+router.delete("/admin/schemes/:id", requireAdmin, async (req, res): Promise<void> => {
   const params = DeleteSchemeParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

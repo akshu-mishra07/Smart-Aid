@@ -8,9 +8,12 @@
 
 export * from "./activityItem";
 export * from "./activityItemType";
+export * from "./adminCheck200";
 export * from "./adminDocument";
 export * from "./adminDocumentDocumentType";
 export * from "./adminDocumentStatus";
+export * from "./adminLoginBody";
+export * from "./adminLoginResponse";
 export * from "./assistanceCenter";
 export * from "./assistanceCenterType";
 export * from "./categoryCount";

@@ -250,6 +250,16 @@ export interface DocumentUpload {
   objectPath?: string | null;
 }
 
+export interface AdminLoginBody {
+  username: string;
+  password: string;
+}
+
+export interface AdminLoginResponse {
+  token: string;
+  username: string;
+}
+
 export type AdminDocumentDocumentType =
   (typeof AdminDocumentDocumentType)[keyof typeof AdminDocumentDocumentType];
 
@@ -422,3 +432,7 @@ export const ListJobsCategory = {
   ngo: "ngo",
   all: "all",
 } as const;
+
+export type AdminCheck200 = {
+  authenticated: boolean;
+};

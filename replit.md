@@ -71,15 +71,25 @@ Smart Aid is an AI-powered web platform for poverty assistance and resource acce
 
 ## Authentication
 
-Clerk auth is integrated throughout the app:
+### User Auth (Clerk)
 - `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `VITE_CLERK_PUBLISHABLE_KEY` — auto-provisioned
 - User sign in at `/sign-in`, sign up at `/sign-up` (Google OAuth + email)
-- Admin sign in at `/admin-login` (separate portal with dark styling, redirects to `/admin` after sign-in)
 - Documents page is auth-protected (redirects to `/sign-in` if signed out)
-- Admin dashboard is auth-protected (redirects to `/admin-login` if signed out)
-- API: documents and admin endpoints are protected with `requireAuth` middleware (`getAuth` from `@clerk/express`)
+- API: documents endpoints protected with `requireAuth` middleware (`getAuth` from `@clerk/express`)
 - Documents are stored per-user via `clerkUserId` column
 - Layout shows "Sign In" button for guests, user avatar dropdown for signed-in users
+
+### Admin Auth (Standalone Credentials)
+- Completely separate from Clerk — own username/password system
+- `ADMIN_USERNAME` and `ADMIN_PASSWORD` env vars define the single admin account
+- `POST /api/admin/login` — validates credentials, returns HMAC-SHA256 signed token (24h TTL)
+- `GET /api/admin/check` — validates stored token
+- Token stored in localStorage under `smart_aid_admin_token`
+- `requireAdmin` middleware on all `/admin/*` routes (users, documents, schemes CRUD)
+- Admin login page at `/admin-login` — dark-themed, separate from user sign-in
+- Admin dashboard at `/admin` — redirects to `/admin-login` if not authenticated
+- `AdminAuthProvider` context wraps admin routes in App.tsx
+- `SESSION_SECRET` env var required (no fallback — fail-fast on boot if missing)
 
 ## Object Storage
 
@@ -92,8 +102,12 @@ Replit App Storage (GCS-backed) for real document file uploads:
 
 ## Design
 
-- Color palette: Warm saffron/amber primary (#B8681A) on cream background
+- Color palette: Deep teal primary (hsl 174 62% 32%) with warm gold accents on cool off-white background
 - Typography: Playfair Display (serif headings) + Inter (sans body)
-- Theme: Light mode (warm cream) with dark mode support
+- Hero: Gradient text effect, radial gradient backgrounds, subtle border accents
+- Cards: Clean white with soft shadows, hover lift effects
+- Header: Frosted glass effect with backdrop blur, pill-style active nav items
+- CTA: Dark gradient (slate-900 to primary) with luminous button shadows
+- Admin portal: Dark theme with slate/teal accents, separate from main design
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.

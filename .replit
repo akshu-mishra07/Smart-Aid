@@ -27,3 +27,9 @@ timeoutMs = 20000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+ADMIN_USERNAME = "smartaid_admin"
+ADMIN_PASSWORD = "SmartAid@2026"

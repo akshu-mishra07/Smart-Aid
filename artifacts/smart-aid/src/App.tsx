@@ -5,6 +5,7 @@ import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/lib/language-context";
+import { AdminAuthProvider } from "@/lib/admin-auth";
 import { Layout } from "@/components/layout";
 import NotFound from "@/pages/not-found";
 
@@ -111,8 +112,12 @@ function Router() {
         <Route path="/jobs" component={Jobs} />
         <Route path="/jobs/:id" component={JobDetail} />
         <Route path="/documents" component={DocumentsRoute} />
-        <Route path="/admin-login/*?" component={AdminLogin} />
-        <Route path="/admin" component={Admin} />
+        <Route path="/admin-login/*?">
+          <AdminAuthProvider><AdminLogin /></AdminAuthProvider>
+        </Route>
+        <Route path="/admin">
+          <AdminAuthProvider><Admin /></AdminAuthProvider>
+        </Route>
         <Route path="/about" component={About} />
         <Route component={NotFound} />
       </Switch>

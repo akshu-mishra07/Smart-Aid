@@ -253,6 +253,45 @@ paths:
         "204":
           description: Document deleted
 
+  /admin/login:
+    post:
+      operationId: adminLogin
+      tags: [admin]
+      summary: Admin login with username and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminLoginResponse"
+        "401":
+          description: Invalid credentials
+
+  /admin/check:
+    get:
+      operationId: adminCheck
+      tags: [admin]
+      summary: Check if admin session is valid
+      responses:
+        "200":
+          description: Admin session valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticated:
+                    type: boolean
+                required:
+                  - authenticated
+
   /admin/users:
     get:
       operationId: listUsers
@@ -736,6 +775,28 @@ components:
       required:
         - fileName
         - documentType
+
+    AdminLoginBody:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - username
+        - password
+
+    AdminLoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        username:
+          type: string
+      required:
+        - token
+        - username
 
     AdminDocument:
       type: object

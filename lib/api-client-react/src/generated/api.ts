@@ -18,7 +18,10 @@ import type {
 
 import type {
   ActivityItem,
+  AdminCheck200,
   AdminDocument,
+  AdminLoginBody,
+  AdminLoginResponse,
   AssistanceCenter,
   CategoryCount,
   Document,
@@ -989,6 +992,167 @@ export const useDeleteDocument = <
 > => {
   return useMutation(getDeleteDocumentMutationOptions(options));
 };
+
+/**
+ * @summary Admin login with username and password
+ */
+export const getAdminLoginUrl = () => {
+  return `/api/admin/login`;
+};
+
+export const adminLogin = async (
+  adminLoginBody: AdminLoginBody,
+  options?: RequestInit,
+): Promise<AdminLoginResponse> => {
+  return customFetch<AdminLoginResponse>(getAdminLoginUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(adminLoginBody),
+  });
+};
+
+export const getAdminLoginMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminLogin>>,
+    TError,
+    { data: BodyType<AdminLoginBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminLogin>>,
+  TError,
+  { data: BodyType<AdminLoginBody> },
+  TContext
+> => {
+  const mutationKey = ["adminLogin"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminLogin>>,
+    { data: BodyType<AdminLoginBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return adminLogin(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminLoginMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminLogin>>
+>;
+export type AdminLoginMutationBody = BodyType<AdminLoginBody>;
+export type AdminLoginMutationError = ErrorType<void>;
+
+/**
+ * @summary Admin login with username and password
+ */
+export const useAdminLogin = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminLogin>>,
+    TError,
+    { data: BodyType<AdminLoginBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminLogin>>,
+  TError,
+  { data: BodyType<AdminLoginBody> },
+  TContext
+> => {
+  return useMutation(getAdminLoginMutationOptions(options));
+};
+
+/**
+ * @summary Check if admin session is valid
+ */
+export const getAdminCheckUrl = () => {
+  return `/api/admin/check`;
+};
+
+export const adminCheck = async (
+  options?: RequestInit,
+): Promise<AdminCheck200> => {
+  return customFetch<AdminCheck200>(getAdminCheckUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminCheckQueryKey = () => {
+  return [`/api/admin/check`] as const;
+};
+
+export const getAdminCheckQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminCheck>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof adminCheck>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminCheckQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminCheck>>> = ({
+    signal,
+  }) => adminCheck({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminCheck>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type AdminCheckQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminCheck>>
+>;
+export type AdminCheckQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Check if admin session is valid
+ */
+
+export function useAdminCheck<
+  TData = Awaited<ReturnType<typeof adminCheck>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof adminCheck>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAdminCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary List all users (admin only)

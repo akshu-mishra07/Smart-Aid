@@ -369,6 +369,26 @@ export const DeleteDocumentParams = zod.object({
 });
 
 /**
+ * @summary Admin login with username and password
+ */
+export const AdminLoginBody = zod.object({
+  username: zod.string(),
+  password: zod.string(),
+});
+
+export const AdminLoginResponse = zod.object({
+  token: zod.string(),
+  username: zod.string(),
+});
+
+/**
+ * @summary Check if admin session is valid
+ */
+export const AdminCheckResponse = zod.object({
+  authenticated: zod.boolean(),
+});
+
+/**
  * @summary List all users (admin only)
  */
 export const ListUsersResponseItem = zod.object({

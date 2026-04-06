@@ -3,11 +3,34 @@ import { eq, sql } from "drizzle-orm";
 import { db, usersTable, documentsTable } from "@workspace/db";
 import { ListUsersResponse, ListAllDocumentsResponse, UpdateDocumentStatusBody } from "@workspace/api-zod";
 import { createClerkClient } from "@clerk/express";
-import { requireAuth } from "../middlewares/requireAuth";
+import { requireAdmin, signAdminToken } from "../middlewares/requireAdmin";
 
 const router: IRouter = Router();
 
-router.get("/admin/users", requireAuth, async (_req, res): Promise<void> => {
+router.post("/admin/login", (req, res): void => {
+  const { username, password } = req.body ?? {};
+  const adminUser = process.env.ADMIN_USERNAME;
+  const adminPass = process.env.ADMIN_PASSWORD;
+
+  if (!adminUser || !adminPass) {
+    res.status(500).json({ error: "Admin credentials not configured" });
+    return;
+  }
+
+  if (username !== adminUser || password !== adminPass) {
+    res.status(401).json({ error: "Invalid username or password" });
+    return;
+  }
+
+  const token = signAdminToken(username);
+  res.json({ token, username });
+});
+
+router.get("/admin/check", requireAdmin, (_req, res): void => {
+  res.json({ authenticated: true });
+});
+
+router.get("/admin/users", requireAdmin, async (_req, res): Promise<void> => {
   const secretKey = process.env.CLERK_SECRET_KEY;
 
   if (secretKey) {
@@ -50,7 +73,7 @@ router.get("/admin/users", requireAuth, async (_req, res): Promise<void> => {
   res.json(ListUsersResponse.parse(users));
 });
 
-router.get("/admin/documents", requireAuth, async (_req, res): Promise<void> => {
+router.get("/admin/documents", requireAdmin, async (_req, res): Promise<void> => {
   const secretKey = process.env.CLERK_SECRET_KEY;
 
   const docs = await db
@@ -103,7 +126,7 @@ router.get("/admin/documents", requireAuth, async (_req, res): Promise<void> => 
   res.json(ListAllDocumentsResponse.parse(result));
 });
 
-router.patch("/admin/documents/:id/status", requireAuth, async (req, res): Promise<void> => {
+router.patch("/admin/documents/:id/status", requireAdmin, async (req, res): Promise<void> => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid document ID" });

@@ -85,22 +85,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-[100dvh] flex flex-col">
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b border-border/30 bg-white/80 backdrop-blur-lg supports-[backdrop-filter]:bg-white/75 shadow-sm shadow-black/[0.02]">
         <div className="container flex h-16 max-w-7xl items-center px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-2 mr-6 text-primary" data-testid="link-home">
-            <HeartHandshake className="h-6 w-6" />
-            <span className="font-serif text-xl font-bold tracking-tight">
+          <Link href="/" className="flex items-center gap-2.5 mr-6 group" data-testid="link-home">
+            <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
+              <HeartHandshake className="h-5 w-5 text-primary" />
+            </div>
+            <span className="font-serif text-xl font-bold tracking-tight text-foreground">
               Smart Aid
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-6 text-sm font-medium ml-6">
+          <nav className="hidden md:flex items-center space-x-1 text-sm font-medium ml-6">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`transition-colors hover:text-primary ${
-                  location === link.href ? "text-primary" : "text-muted-foreground"
+                className={`px-3 py-1.5 rounded-md transition-all ${
+                  location === link.href
+                    ? "text-primary bg-primary/8 font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 }`}
                 data-testid={`link-nav-${link.href.replace("/", "")}`}
               >
@@ -178,12 +182,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <footer className="py-6 md:px-8 md:py-0 border-t bg-muted/30">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row max-w-7xl px-4 md:px-6">
-          <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-            Built with care for India's future.
-            <span className="inline-block mx-2">|</span>
-            {t("Need help? Call", "मदद चाहिए? कॉल करें")} <strong>1800-123-4567</strong>
+      <footer className="py-8 md:px-8 border-t border-border/30 bg-slate-50/80">
+        <div className="container flex flex-col items-center justify-between gap-4 md:flex-row max-w-7xl px-4 md:px-6">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <HeartHandshake className="h-4 w-4 text-primary" />
+            <span>{t("Built with care for India's future.", "भारत के भविष्य के लिए बनाया गया।")}</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {t("Need help? Call", "मदद चाहिए? कॉल करें")} <strong className="text-foreground">1800-123-4567</strong>
           </p>
         </div>
       </footer>

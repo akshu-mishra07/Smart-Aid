@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLanguage } from "@/lib/language-context";
+import { Link } from "wouter";
 import {
   useGetStatsSummary, getGetStatsSummaryQueryKey,
   useGetSchemesByCategory, getGetSchemesByCategoryQueryKey,
@@ -7,11 +8,17 @@ import {
   useListUsers, getListUsersQueryKey,
   useListSchemes, getListSchemesQueryKey,
   useDeleteScheme,
+  useCreateScheme,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -26,10 +33,30 @@ const activityIcons: Record<string, string> = {
   document_uploaded: "FileText",
 };
 
+const emptySchemeForm = {
+  name: "",
+  nameHindi: "",
+  description: "",
+  descriptionHindi: "",
+  schemeType: "other" as const,
+  category: "general" as const,
+  ministry: "",
+  benefitAmount: "",
+  applicationUrl: "",
+  minAge: "",
+  maxAge: "",
+  maxIncome: "",
+  isActive: true,
+  documents: [] as string[],
+};
+
 export default function Admin() {
   const { t, language } = useLanguage();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [form, setForm] = useState(emptySchemeForm);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const { data: stats, isLoading: statsLoading } = useGetStatsSummary({
     query: { queryKey: getGetStatsSummaryQueryKey() },
@@ -52,12 +79,52 @@ export default function Admin() {
   });
 
   const deleteMutation = useDeleteScheme();
+  const createMutation = useCreateScheme();
 
   const handleDelete = (id: number) => {
     if (!window.confirm(t("Are you sure you want to delete this scheme?", "क्या आप इस योजना को हटाना चाहते हैं?"))) return;
     deleteMutation.mutate({ id }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListSchemesQueryKey({}) });
+        queryClient.invalidateQueries({ queryKey: getGetStatsSummaryQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetSchemesByCategoryQueryKey() });
+      },
+    });
+  };
+
+  const handleAddScheme = () => {
+    setFormError(null);
+    if (!form.name.trim() || !form.nameHindi.trim() || !form.description.trim() || !form.descriptionHindi.trim() || !form.ministry.trim()) {
+      setFormError(t("Please fill in all required fields.", "कृपया सभी आवश्यक फ़ील्ड भरें।"));
+      return;
+    }
+
+    createMutation.mutate({
+      name: form.name.trim(),
+      nameHindi: form.nameHindi.trim(),
+      description: form.description.trim(),
+      descriptionHindi: form.descriptionHindi.trim(),
+      schemeType: form.schemeType,
+      category: form.category,
+      ministry: form.ministry.trim(),
+      benefitAmount: form.benefitAmount.trim() || null,
+      applicationUrl: form.applicationUrl.trim() || null,
+      minAge: form.minAge ? parseInt(form.minAge) : null,
+      maxAge: form.maxAge ? parseInt(form.maxAge) : null,
+      maxIncome: form.maxIncome ? parseInt(form.maxIncome) : null,
+      isActive: form.isActive,
+      documents: form.documents,
+    }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListSchemesQueryKey({}) });
+        queryClient.invalidateQueries({ queryKey: getGetStatsSummaryQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetSchemesByCategoryQueryKey() });
+        setAddDialogOpen(false);
+        setForm(emptySchemeForm);
+        setFormError(null);
+      },
+      onError: () => {
+        setFormError(t("Failed to create scheme. Please try again.", "योजना बनाने में विफल। कृपया पुनः प्रयास करें।"));
       },
     });
   };
@@ -93,7 +160,6 @@ export default function Admin() {
         </TabsList>
 
         <TabsContent value="overview">
-          {/* Stat Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {statCards.map((card, i) => {
               const Icon = card.icon;
@@ -118,7 +184,6 @@ export default function Admin() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-6">
-            {/* Schemes by Category Chart */}
             <Card>
               <CardHeader>
                 <CardTitle>{t("Schemes by Category", "श्रेणी के अनुसार योजनाएं")}</CardTitle>
@@ -136,7 +201,6 @@ export default function Admin() {
               </CardContent>
             </Card>
 
-            {/* Recent Activity */}
             <Card>
               <CardHeader>
                 <CardTitle>{t("Recent Activity", "हालिया गतिविधि")}</CardTitle>
@@ -172,10 +236,184 @@ export default function Admin() {
         <TabsContent value="schemes">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold">{t("Manage Schemes", "योजनाएं प्रबंधित करें")}</h2>
-            <Button data-testid="btn-add-scheme">
-              <Plus className="mr-2 h-4 w-4" />
-              {t("Add Scheme", "योजना जोड़ें")}
-            </Button>
+            <Dialog open={addDialogOpen} onOpenChange={(open) => { setAddDialogOpen(open); if (!open) { setForm(emptySchemeForm); setFormError(null); } }}>
+              <DialogTrigger asChild>
+                <Button data-testid="btn-add-scheme">
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t("Add Scheme", "योजना जोड़ें")}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{t("Add New Scheme", "नई योजना जोड़ें")}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>{t("Name (English)", "नाम (अंग्रेजी)")} *</Label>
+                      <Input
+                        placeholder="Pradhan Mantri..."
+                        value={form.name}
+                        onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                        data-testid="input-scheme-name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{t("Name (Hindi)", "नाम (हिंदी)")} *</Label>
+                      <Input
+                        placeholder="प्रधानमंत्री..."
+                        value={form.nameHindi}
+                        onChange={e => setForm(f => ({ ...f, nameHindi: e.target.value }))}
+                        data-testid="input-scheme-name-hindi"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>{t("Description (English)", "विवरण (अंग्रेजी)")} *</Label>
+                      <Textarea
+                        placeholder="Scheme description..."
+                        value={form.description}
+                        onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                        rows={3}
+                        data-testid="input-scheme-description"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{t("Description (Hindi)", "विवरण (हिंदी)")} *</Label>
+                      <Textarea
+                        placeholder="योजना का विवरण..."
+                        value={form.descriptionHindi}
+                        onChange={e => setForm(f => ({ ...f, descriptionHindi: e.target.value }))}
+                        rows={3}
+                        data-testid="input-scheme-description-hindi"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>{t("Scheme Type", "योजना प्रकार")}</Label>
+                      <Select value={form.schemeType} onValueChange={v => setForm(f => ({ ...f, schemeType: v as typeof f.schemeType }))}>
+                        <SelectTrigger data-testid="select-scheme-type">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {["scholarship", "housing", "employment", "health", "food", "pension", "other"].map(v => (
+                            <SelectItem key={v} value={v}>{v}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{t("Category", "श्रेणी")}</Label>
+                      <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v as typeof f.category }))}>
+                        <SelectTrigger data-testid="select-scheme-category">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {["general", "sc", "st", "obc", "minority", "women", "disability", "all"].map(v => (
+                            <SelectItem key={v} value={v}>{v}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>{t("Ministry", "मंत्रालय")} *</Label>
+                    <Input
+                      placeholder="Ministry of..."
+                      value={form.ministry}
+                      onChange={e => setForm(f => ({ ...f, ministry: e.target.value }))}
+                      data-testid="input-scheme-ministry"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>{t("Min Age", "न्यूनतम आयु")}</Label>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 18"
+                        value={form.minAge}
+                        onChange={e => setForm(f => ({ ...f, minAge: e.target.value }))}
+                        data-testid="input-scheme-min-age"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{t("Max Age", "अधिकतम आयु")}</Label>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 60"
+                        value={form.maxAge}
+                        onChange={e => setForm(f => ({ ...f, maxAge: e.target.value }))}
+                        data-testid="input-scheme-max-age"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{t("Max Income (₹/yr)", "अधिकतम आय")}</Label>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 250000"
+                        value={form.maxIncome}
+                        onChange={e => setForm(f => ({ ...f, maxIncome: e.target.value }))}
+                        data-testid="input-scheme-max-income"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>{t("Benefit Amount", "लाभ राशि")}</Label>
+                      <Input
+                        placeholder="e.g. ₹10,000 per year"
+                        value={form.benefitAmount}
+                        onChange={e => setForm(f => ({ ...f, benefitAmount: e.target.value }))}
+                        data-testid="input-scheme-benefit"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{t("Application URL", "आवेदन URL")}</Label>
+                      <Input
+                        placeholder="https://..."
+                        value={form.applicationUrl}
+                        onChange={e => setForm(f => ({ ...f, applicationUrl: e.target.value }))}
+                        data-testid="input-scheme-url"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="isActive"
+                      checked={form.isActive}
+                      onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))}
+                      className="h-4 w-4"
+                      data-testid="checkbox-scheme-active"
+                    />
+                    <Label htmlFor="isActive">{t("Active (visible to users)", "सक्रिय (उपयोगकर्ताओं को दिखाई दे)")}</Label>
+                  </div>
+
+                  {formError && (
+                    <p className="text-sm text-destructive">{formError}</p>
+                  )}
+
+                  <Button
+                    className="w-full"
+                    onClick={handleAddScheme}
+                    disabled={createMutation.isPending}
+                    data-testid="btn-submit-scheme"
+                  >
+                    {createMutation.isPending
+                      ? t("Saving...", "सहेज रहे हैं...")
+                      : t("Create Scheme", "योजना बनाएं")}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {schemesLoading ? (
@@ -200,9 +438,11 @@ export default function Admin() {
                         <p className="text-xs text-muted-foreground">{scheme.ministry}</p>
                       </div>
                       <div className="flex gap-2 shrink-0">
-                        <Button size="sm" variant="ghost" data-testid={`btn-view-scheme-${scheme.id}`}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                        <Link href={`/schemes/${scheme.id}`}>
+                          <Button size="sm" variant="ghost" data-testid={`btn-view-scheme-${scheme.id}`}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
                         <Button
                           size="sm"
                           variant="ghost"

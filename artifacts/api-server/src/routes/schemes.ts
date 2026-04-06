@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { like, eq, and } from "drizzle-orm";
+import { ilike, eq, and } from "drizzle-orm";
 import { db, schemesTable } from "@workspace/db";
 import {
   ListSchemesQueryParams,
@@ -32,7 +32,7 @@ router.get("/schemes", async (req, res): Promise<void> => {
     conditions.push(eq(schemesTable.schemeType, schemeType));
   }
   if (search) {
-    conditions.push(like(schemesTable.name, `%${search}%`));
+    conditions.push(ilike(schemesTable.name, `%${search}%`));
   }
 
   const schemes = conditions.length > 0

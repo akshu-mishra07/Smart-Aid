@@ -239,6 +239,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Document"
+    delete:
+      operationId: deleteDocument
+      tags: [documents]
+      summary: Delete a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Document deleted
 
   /admin/users:
     get:

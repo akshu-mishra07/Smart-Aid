@@ -905,6 +905,90 @@ export function useGetDocument<
 }
 
 /**
+ * @summary Delete a document
+ */
+export const getDeleteDocumentUrl = (id: number) => {
+  return `/api/documents/${id}`;
+};
+
+export const deleteDocument = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteDocumentUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteDocumentMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDocument>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteDocument>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteDocument"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteDocument>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteDocument(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteDocumentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteDocument>>
+>;
+
+export type DeleteDocumentMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a document
+ */
+export const useDeleteDocument = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDocument>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteDocument>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteDocumentMutationOptions(options));
+};
+
+/**
  * @summary List all users (admin only)
  */
 export const getListUsersUrl = () => {

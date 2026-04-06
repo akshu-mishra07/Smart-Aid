@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useLanguage } from "@/lib/language-context";
-import { useListDocuments, useUploadDocument, getListDocumentsQueryKey } from "@workspace/api-client-react";
+import { useListDocuments, useUploadDocument, useDeleteDocument, getListDocumentsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, Upload, CheckCircle, Clock, XCircle, Paperclip } from "lucide-react";
+import { FileText, Upload, CheckCircle, Clock, XCircle, Paperclip, Trash2 } from "lucide-react";
 
 const statusConfig = {
   pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock, label: "Pending", labelHi: "लंबित" },
@@ -88,10 +88,18 @@ export default function Documents() {
   });
 
   const mutation = useUploadDocument();
+  const deleteMutation = useDeleteDocument();
 
   const { uploadFile, isUploading, progress } = useUpload({
     onError: (e) => setUploadError(e.message),
   });
+
+  const handleDelete = (id: number) => {
+    if (!window.confirm(t("Are you sure you want to delete this document?", "क्या आप इस दस्तावेज़ को हटाना चाहते हैं?"))) return;
+    deleteMutation.mutate({ id }, {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: getListDocumentsQueryKey() }),
+    });
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -283,10 +291,22 @@ export default function Documents() {
                         )}
                       </div>
                     </div>
-                    <Badge className={status.color}>
-                      <StatusIcon className="h-3 w-3 mr-1" />
-                      {language === "hi" ? status.labelHi : status.label}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge className={status.color}>
+                        <StatusIcon className="h-3 w-3 mr-1" />
+                        {language === "hi" ? status.labelHi : status.label}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive hover:text-destructive h-7 px-2"
+                        onClick={() => handleDelete(doc.id)}
+                        disabled={deleteMutation.isPending}
+                        data-testid={`btn-delete-doc-${doc.id}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

@@ -44,6 +44,15 @@ Smart Aid is an AI-powered web platform for poverty assistance and resource acce
 - `users` — Registered users
 - `activity` — Platform activity feed
 
+## Bug Fixes Applied
+
+1. **Case-insensitive scheme search** — Changed `like` to `ilike` so searching "pm" finds "PM Awas Yojana"
+2. **Partial city filter (assistance centers)** — Changed exact `eq` to `ilike` with wildcards for partial matches (e.g. "del" finds "Delhi")
+3. **Partial city filter (jobs)** — Same fix applied; typing "mum" finds Mumbai jobs
+4. **Admin "View scheme" button** — Eye icon now wrapped in wouter `<Link href="/schemes/:id">` for real navigation
+5. **Admin "Add Scheme" dialog** — Full create-scheme form with all fields (name/Hindi, description/Hindi, type, category, ministry, age, income, benefit, URL, active toggle) wired to `useCreateScheme` mutation
+6. **Document delete** — Added DELETE `/documents/:id` API endpoint, `DeleteDocumentParams` Zod schema, and a trash button per document on the documents page (auth-scoped — users can only delete their own documents)
+
 ## Key Commands
 
 - `pnpm run typecheck` — full typecheck across all packages

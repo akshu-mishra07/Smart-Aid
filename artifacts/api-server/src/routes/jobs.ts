@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, and } from "drizzle-orm";
+import { ilike, eq, and } from "drizzle-orm";
 import { db, jobsTable } from "@workspace/db";
 import {
   ListJobsQueryParams,
@@ -23,7 +23,7 @@ router.get("/jobs", async (req, res): Promise<void> => {
     conditions.push(eq(jobsTable.category, category));
   }
   if (city) {
-    conditions.push(eq(jobsTable.city, city));
+    conditions.push(ilike(jobsTable.city, `%${city}%`));
   }
   if (state) {
     conditions.push(eq(jobsTable.state, state));

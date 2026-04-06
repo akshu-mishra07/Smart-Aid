@@ -362,6 +362,13 @@ export const GetDocumentResponse = zod.object({
 });
 
 /**
+ * @summary Delete a document
+ */
+export const DeleteDocumentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
  * @summary List all users (admin only)
  */
 export const ListUsersResponseItem = zod.object({

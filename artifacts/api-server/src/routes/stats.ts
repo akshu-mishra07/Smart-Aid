@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, schemesTable, jobsTable, assistanceCentersTable, usersTable, activityTable } from "@workspace/db";
 import { sql, count } from "drizzle-orm";
+import { createClerkClient } from "@clerk/express";
 import {
   GetStatsSummaryResponse,
   GetSchemesByCategoryResponse,
@@ -9,11 +10,24 @@ import {
 
 const router: IRouter = Router();
 
+async function getRegisteredUserCount(): Promise<number> {
+  const secretKey = process.env.CLERK_SECRET_KEY;
+  if (secretKey) {
+    try {
+      const clerk = createClerkClient({ secretKey });
+      const { totalCount } = await clerk.users.getUserList({ limit: 1 });
+      if (totalCount > 0) return totalCount;
+    } catch {}
+  }
+  const [usersCount] = await db.select({ count: count() }).from(usersTable);
+  return usersCount.count;
+}
+
 router.get("/stats/summary", async (_req, res): Promise<void> => {
   const [schemesCount] = await db.select({ count: count() }).from(schemesTable);
   const [jobsCount] = await db.select({ count: count() }).from(jobsTable);
   const [centersCount] = await db.select({ count: count() }).from(assistanceCentersTable);
-  const [usersCount] = await db.select({ count: count() }).from(usersTable);
+  const totalUsers = await getRegisteredUserCount();
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -32,7 +46,7 @@ router.get("/stats/summary", async (_req, res): Promise<void> => {
     totalSchemes: schemesCount.count,
     totalJobs: jobsCount.count,
     totalAssistanceCenters: centersCount.count,
-    totalUsers: usersCount.count,
+    totalUsers: totalUsers,
     schemesThisMonth: schemesThisMonth.count,
     jobsThisMonth: jobsThisMonth.count,
   }));

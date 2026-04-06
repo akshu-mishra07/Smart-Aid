@@ -136,7 +136,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col gap-2">
               <span className="text-3xl font-bold text-primary">{stats?.totalUsers ?? "-"}</span>
-              <span className="text-sm font-medium text-muted-foreground">{t("People Helped", "लोग जिनकी मदद की गई")}</span>
+              <span className="text-sm font-medium text-muted-foreground">{t("Registered Users", "पंजीकृत उपयोगकर्ता")}</span>
             </div>
           </div>
         </div>
